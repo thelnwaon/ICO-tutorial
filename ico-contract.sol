@@ -1,17 +1,17 @@
 pragma solidity ^0.4.18;
 
 // ----------------------------------------------------------------------------
-// 'bitfwd' CROWDSALE token contract
+// 'AON' 'Thelnwaon Coins' token contract
 //
-// Deployed to : 0xD0FDf2ECd4CadE671a7EE1063393eC0eB90816FD
-// Symbol      : FWD
-// Name        : bitfwd Token
-// Total supply: Gazillion
+// Deployed to : 0xA42E9f546eD09BC0D9cc0b42eB4D1687d50D5fB1
+// Symbol      : AON
+// Name        : Thelnwaon Coin
+// Total supply: Generated from contributions
 // Decimals    : 18
 //
 // Enjoy.
 //
-// (c) by Moritz Neto & Daniel Bar with BokkyPooBah / Bok Consulting Pty Ltd Au 2017. The MIT Licence.
+// (c) BokkyPooBah / Bok Consulting Pty Ltd 2017. The MIT Licence.
 // ----------------------------------------------------------------------------
 
 
@@ -19,19 +19,19 @@ pragma solidity ^0.4.18;
 // Safe maths
 // ----------------------------------------------------------------------------
 contract SafeMath {
-    function safeAdd(uint a, uint b) internal pure returns (uint c) {
+    function safeAdd(uint a, uint b) public pure returns (uint c) {
         c = a + b;
         require(c >= a);
     }
-    function safeSub(uint a, uint b) internal pure returns (uint c) {
+    function safeSub(uint a, uint b) public pure returns (uint c) {
         require(b <= a);
         c = a - b;
     }
-    function safeMul(uint a, uint b) internal pure returns (uint c) {
+    function safeMul(uint a, uint b) public pure returns (uint c) {
         c = a * b;
         require(a == 0 || c / a == b);
     }
-    function safeDiv(uint a, uint b) internal pure returns (uint c) {
+    function safeDiv(uint a, uint b) public pure returns (uint c) {
         require(b > 0);
         c = a / b;
     }
@@ -43,9 +43,9 @@ contract SafeMath {
 // https://github.com/ethereum/EIPs/blob/master/EIPS/eip-20-token-standard.md
 // ----------------------------------------------------------------------------
 contract ERC20Interface {
-    function totalSupply() public constant returns (uint);
-    function balanceOf(address tokenOwner) public constant returns (uint balance);
-    function allowance(address tokenOwner, address spender) public constant returns (uint remaining);
+    function totalSupply() public returns (uint _totalSupply);
+    function balanceOf(address tokenOwner) public  returns (uint balance);
+    function allowance(address tokenOwner, address spender) public returns (uint remaining);
     function transfer(address to, uint tokens) public returns (bool success);
     function approve(address spender, uint tokens) public returns (bool success);
     function transferFrom(address from, address to, uint tokens) public returns (bool success);
@@ -63,7 +63,6 @@ contract ERC20Interface {
 contract ApproveAndCallFallBack {
     function receiveApproval(address from, uint256 tokens, address token, bytes data) public;
 }
-
 
 // ----------------------------------------------------------------------------
 // Owned contract
@@ -96,10 +95,10 @@ contract Owned {
 
 
 // ----------------------------------------------------------------------------
-// ERC20 Token, with the addition of symbol, name and decimals and assisted
-// token transfers
+// ERC20 Token, with the addition of symbol, name and decimals
+// Receives ETH and generates tokens
 // ----------------------------------------------------------------------------
-contract bitfwdToken is ERC20Interface, Owned, SafeMath {
+contract thelnwaonCoins is ERC20Interface, Owned, SafeMath {
     string public symbol;
     string public  name;
     uint8 public decimals;
@@ -115,20 +114,23 @@ contract bitfwdToken is ERC20Interface, Owned, SafeMath {
     // ------------------------------------------------------------------------
     // Constructor
     // ------------------------------------------------------------------------
-    function bitfwdToken() public {
-        symbol = "FWD";
-        name = "bitfwd Token";
+    function thelnwaonCoins() public {
+        symbol = "AON";
+        name = "Thelnwaon Coin";
         decimals = 18;
+        _totalSupply = 1000000000000000000000000000;
+        startDate = now;
         bonusEnds = now + 1 weeks;
-        endDate = now + 7 weeks;
-
+        endDate = now + 4 weeks;
+        balances[owner] = _totalSupply;
+        Transfer(address(0), owner, _totalSupply);
     }
 
 
     // ------------------------------------------------------------------------
     // Total supply
     // ------------------------------------------------------------------------
-    function totalSupply() public constant returns (uint) {
+    function totalSupply() public returns (uint) {
         return _totalSupply  - balances[address(0)];
     }
 
@@ -136,7 +138,7 @@ contract bitfwdToken is ERC20Interface, Owned, SafeMath {
     // ------------------------------------------------------------------------
     // Get the token balance for account `tokenOwner`
     // ------------------------------------------------------------------------
-    function balanceOf(address tokenOwner) public constant returns (uint balance) {
+    function balanceOf(address tokenOwner) public returns (uint balance) {
         return balances[tokenOwner];
     }
 
@@ -160,7 +162,7 @@ contract bitfwdToken is ERC20Interface, Owned, SafeMath {
     //
     // https://github.com/ethereum/EIPs/blob/master/EIPS/eip-20-token-standard.md
     // recommends that there are no checks for the approval double-spend attack
-    // as this should be implemented in user interfaces
+    // as this should be implemented in user interfaces 
     // ------------------------------------------------------------------------
     function approve(address spender, uint tokens) public returns (bool success) {
         allowed[msg.sender][spender] = tokens;
@@ -171,7 +173,7 @@ contract bitfwdToken is ERC20Interface, Owned, SafeMath {
 
     // ------------------------------------------------------------------------
     // Transfer `tokens` from the `from` account to the `to` account
-    //
+    // 
     // The calling account must already have sufficient tokens approve(...)-d
     // for spending from the `from` account and
     // - From account must have sufficient balance to transfer
@@ -191,7 +193,7 @@ contract bitfwdToken is ERC20Interface, Owned, SafeMath {
     // Returns the amount of tokens approved by the owner that can be
     // transferred to the spender's account
     // ------------------------------------------------------------------------
-    function allowance(address tokenOwner, address spender) public constant returns (uint remaining) {
+    function allowance(address tokenOwner, address spender) public returns (uint remaining) {
         return allowed[tokenOwner][spender];
     }
 
@@ -208,8 +210,9 @@ contract bitfwdToken is ERC20Interface, Owned, SafeMath {
         return true;
     }
 
+
     // ------------------------------------------------------------------------
-    // 1,000 FWD Tokens per 1 ETH
+    // 1,000 tokens per 1 ETH, with 20% bonus
     // ------------------------------------------------------------------------
     function () public payable {
         require(now >= startDate && now <= endDate);
@@ -224,7 +227,6 @@ contract bitfwdToken is ERC20Interface, Owned, SafeMath {
         Transfer(address(0), msg.sender, tokens);
         owner.transfer(msg.value);
     }
-
 
 
     // ------------------------------------------------------------------------
